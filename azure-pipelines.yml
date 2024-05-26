@@ -39,12 +39,17 @@ stages:
         git config --global user.name "azure-pipelines"
         git config --global user.email "azure-pipelines@azure.com"
 
-        # Add Azure Repos remote
-        git remote add azure https://$(System.AccessToken)@dev.azure.com/k200334/DevopsProject/_git/DevopsProject
-        git fetch azure
+        # Check if the Azure Repos remote exists
+        if git ls-remote --exit-code azure; then
+          echo "Azure remote already exists"
+        else
+          echo "Adding Azure remote"
+          git remote add azure https://$(System.AccessToken)@dev.azure.com/k200334/DevopsProject/_git/DevopsProject
+        fi
 
-        # Push changes to Azure Repos
-        git push azure HEAD:main --force
+        # Fetch and push to Azure Repos
+        git fetch azure || echo "Fetching from Azure remote failed"
+        git push azure HEAD:main --force || echo "Pushing to Azure remote failed"
       displayName: 'Sync changes to Azure Repos'
       env:
         System.AccessToken: $(System.AccessToken)
