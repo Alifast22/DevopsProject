@@ -27,6 +27,19 @@ stages:
     pool:
       vmImage: $(vmImageName)
     steps:
+    - task: SonarCloudPrepare@1
+      inputs:
+        SonarCloud: 'Sonarcloud'
+        organization: 'k200334'
+        scannerMode: 'MSBuild'
+        projectKey: 'k200334_DevopsProject.git'
+        projectName: 'DevopsProject.git' 
+    - task: SonarCloudAnalyze@1
+      inputs:
+        jdkversion: 'JAVA_HOME_17_X64'
+    - task: SonarCloudPublish@1
+      inputs:
+        pollingTimeoutSec: '30'
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
