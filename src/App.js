@@ -14,19 +14,40 @@ const App = () => {
   const [favorites, setFavorites] = useState([]);
 
   const getMovieRequest = async (searchValue) => {
-    const url = `https://www.omdbapi.com/?s=${searchValue}&apikey=8a72f225`;
+    let url;
+    let options = {};
 
-    const response = await fetch(url);
-		const responseJson = await response.json();
+    if (searchValue) {
+      url = 'https://movielistingbackend.azurewebsites.net/search';
+      options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ movie: searchValue }),
+      };
+    } else {
+      url = 'https://www.omdbapi.com/?s=star&apikey=8a72f225&page=1';
+    }
 
-		if (responseJson.Search) {
-			setMovies(responseJson.Search);
-		}
-	};
+    const response = await fetch(url, options);
+    const responseJson = await response.json();
 
-	useEffect(() => {
-		getMovieRequest(searchValue);
-	}, [searchValue]);
+    if (responseJson && responseJson.length) {
+      setMovies(responseJson.slice(0, 10)); // Ensuring only 10 movies are displayed
+    } else if (responseJson.Search) {
+      setMovies(responseJson.Search.slice(0, 10)); // Ensuring only 10 movies are displayed
+    }
+  };
+
+  useEffect(() => {
+    getMovieRequest('');
+  }, []);
+
+  useEffect(() => {
+    getMovieRequest(searchValue);
+  }, [searchValue]);
+
 
 	const addFavoriteMovie = (movie) => {
 		const newFavoriteList = [...favorites, movie];
@@ -42,29 +63,30 @@ const App = () => {
 	};
 
   return (
-		<div className='container-fluid movie-app'>
-			<div className='row d-flex align-items-center mt-4 mb-4'>
-				<MovieListHeading heading='Movies' />
-				<SearchBox searchValue={searchValue} setSearchValue={setSearchValue} />
-			</div>
-			<div className='row'>
-				<MovieList
-					movies={movies}
+    <div className='container-fluid movie-app'>
+      <div className='row d-flex align-items-center mt-4 mb-4'>
+        <MovieListHeading heading='Movies' />
+        <SearchBox searchValue={searchValue} setSearchValue={setSearchValue} />
+      </div>
+      <div className='row'>
+        <MovieList
+          movies={movies}
           handleFavoritesClick={addFavoriteMovie}
           favoriteComponent={AddFavorites}
-				/>
-			</div>
-      <div className="row d-flex align-items-center mt-4 mb-4">
+        />
+      </div>
+      <div className='row d-flex align-items-center mt-4 mb-4'>
         <MovieListHeading heading='Favorites' />
       </div>
-      <div className="row">
-        <MovieList 
-          movies={favorites} 
-          handleFavoritesClick={removeFavoriteMovie} 
+      <div className='row'>
+        <MovieList
+          movies={favorites}
+          handleFavoritesClick={removeFavoriteMovie}
           favoriteComponent={RemoveFavorites}
         />
       </div>
-		</div>
+    </div>
+
 	);
 };
 
